@@ -19,6 +19,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemispheres": hemispheres(browser),
         "last_modified": dt.datetime.now()
     }
        # Stop webdriver and return data
@@ -82,7 +83,27 @@ def mars_facts():
     df.columns=['description', 'Mars', 'Earth']
     df.set_index('description', inplace=True)
     return df.to_html()
-    
+
+def hemispheres(browser):
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    hemisphere_image_urls = []
+    for x in range(4):
+        dict_hemispheres = {}
+        full_image_link = browser.find_by_tag('h3')[x]
+        full_image_link.click()
+        html = browser.html
+        hemi_title = ""
+        img_soup = soup(html, 'html.parser')
+        hemi_title = img_soup.find('h2', class_='title').get_text()
+        img_url_rel = img_soup.find('img', class_='wide-image').get('src')
+        hemi_img_url = f'https://astrogeology.usgs.gov/cache/{img_url_rel}'
+        dict_hemispheres.update({'img_url': hemi_img_url, 'title' : hemi_title})
+        hemisphere_image_urls.append(dict_hemispheres)
+        browser.back()
+    return hemisphere_image_urls
+
 if __name__ == "__main__":
     # If running as script, print scraped data
     print(scrape_all())
